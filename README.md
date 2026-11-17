@@ -79,7 +79,10 @@ no idle sweep, no roll, and the gallery stacks.
   `index.html`. Copy one to add another.
 - **Certificates:** put the scan in `public/certificates/` and copy the
   `sheet--certificate` article.
-- **Résumé and CV:** replace the PDFs in `public/files/`, keeping the file names.
+- **Résumé and CV:** both are built from source in the Star-Portfolio repo
+  (`cv/cv.html` and `cv/resume.py`; run `cv/build.sh` there). Copy
+  `cv/dist/Sofiyan_Shaikh_CV.pdf` and `cv/dist/Sofiyan_Shaikh_Resume_Public.pdf`
+  (the copy without a phone number) into `public/files/`, keeping these names.
 - **Tools band:** edit the list in the `ticker` section of `index.html`.
 
 ## Generated assets
@@ -110,8 +113,8 @@ photo, re-measure the positions at the top of `tools/xray/build.py`, and keep
   sources are known, or swap in images you have the rights to.
 - **The teardown is not an M4.** The photo shows a MacBook Air with a fan, the
   Intel-era model; Apple silicon Airs, including the M4, are fanless.
-- **The résumé PDF includes a phone number** and still lists the agilescitech.in
-  rebuild, which is no longer claimed on the site.
+- **Résumé:** the site serves a copy without the phone number. The first two
+  commits in this repo's history contain an earlier version that has it.
 - **Link previews:** `og:url`, `og:image` and the canonical link in `index.html`
   use the vercel.app address; update them if the site moves to its own domain.
 
