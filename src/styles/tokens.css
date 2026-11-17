@@ -1,0 +1,64 @@
+/*
+  Design tokens. The WebGL scenes read the colour values from here at boot
+  (see readTokens in src/gl/Stage.js), so this file is the only place to change them.
+*/
+:root {
+  /* Cyanotype palette */
+  --c-paper: #e8ecf1;
+  --c-paper-line: #c7d0de;
+  --c-ink: #0a1838;
+  --c-blue: #14337a;
+  --c-line: #9fb2d6;
+  --c-accent: #ffb400;
+
+  /*
+    Hero text sits over a backdrop that changes per pixel, so it uses
+    mix-blend-mode: difference. This value is paper minus ink: it reads as ink on
+    paper and turns marigold over the blueprint. Recompute it if you change either.
+  */
+  --c-knockout: #ded4b9;
+
+  --font-display: 'Anybody Variable', 'Arial Black', system-ui, sans-serif;
+  --font-text: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+
+  /* One house ease, mirrored in JS as the "house" CustomEase. */
+  --ease: cubic-bezier(0.7, 0, 0.2, 1);
+  --dur: 0.8s;
+
+  --pad: 2rem;
+  --nav-h: 4.5rem;
+
+  /* Small text scales with the page but never drops below a readable pixel size. */
+  --text-s: max(1.05rem, 14px);
+  --text-xs: max(0.92rem, 13px);
+
+  /*
+    Fluid scale: every rem tracks the viewport between two widths, so the layout
+    keeps the proportions of the design file instead of reflowing.
+      root size = clamp(min, 100vw, max) / design width * 16
+  */
+  --scale-min: 992px;
+  --scale-max: 1920px;
+  --design-width: 1440;
+}
+
+@media (max-width: 991px) {
+  :root {
+    --scale-min: 768px;
+    --scale-max: 991px;
+    --design-width: 900;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --scale-min: 320px;
+    --scale-max: 480px;
+    --design-width: 390;
+    --pad: 1.25rem;
+  }
+}
+
+html {
+  font-size: calc(clamp(var(--scale-min), 100vw, var(--scale-max)) / var(--design-width) * 16);
+}

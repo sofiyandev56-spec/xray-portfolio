@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sofiyan Shaikh, iOS and web developer</title>
+    <meta
+      name="description"
+      content="Sofiyan Shaikh is a first-year B.Tech CSE (AI and ML) student at UIT, Karnavati University, building iOS apps in Swift and web interfaces in React."
+    />
+    <meta name="theme-color" content="#E8ECF1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Link previews. Once the site has a domain, make og:image an absolute URL. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sofiyan Shaikh, iOS and web developer" />
+    <meta property="og:description" content="Sofiyan Shaikh is a first-year B.Tech CSE (AI and ML) student at UIT, Karnavati University, building iOS apps in Swift and web interfaces in React." />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Sofiyan Shaikh's portrait, half photo and half x-ray of the skeleton and the MacBook's insides" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- The WebGL hero fetches these in CORS mode, so the preloads must match or
+         the browser discards them and downloads the images again. -->
+    <link rel="preload" as="image" href="/hero/portrait.webp" crossorigin="anonymous" />
+    <link rel="preload" as="image" href="/hero/xray.webp" crossorigin="anonymous" />
+    <!-- Marks the page as scripted before first paint so the intro can start hidden. -->
+    <script>
+      document.documentElement.classList.add('js', 'is-loading')
+    </script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#about">Skip to content</a>
+
+    <!-- One WebGL canvas for the whole page. Elements with [data-gl] claim a region of it. -->
+    <canvas class="gl" aria-hidden="true"></canvas>
+
+    <header class="nav" data-nav data-theme="light" data-intro="fade">
+      <a class="nav__name" href="#top">Sofiyan Shaikh</a>
+      <nav class="nav__links" aria-label="Sections">
+        <a href="#about">About</a>
+        <a href="#work">Work</a>
+        <a href="#contact">Contact</a>
+        <a class="nav__resume" href="/files/Sofiyan-Shaikh-Resume.pdf" target="_blank" rel="noopener">Résumé</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- HERO ------------------------------------------------------------ -->
+      <section class="hero" id="top" data-nav-theme="light">
+        <!-- Draws the portrait, and under the cursor the x-ray built by tools/xray/build.py. -->
+        <div class="hero__gl" data-gl="hero" data-gl-overlay="/hero/xray.webp"></div>
+
+        <!-- Layout handle for the WebGL portrait, and the fallback when WebGL is off. -->
+        <img
+          class="hero__portrait"
+          data-gl-subject
+          src="/hero/portrait.webp"
+          crossorigin="anonymous"
+          width="843"
+          height="818"
+          alt="Sofiyan Shaikh wearing headphones, sitting behind a MacBook Air"
+        />
+
+        <!-- The autograph, written across the hero while the page loads. -->
+        <div class="signature signature--intro" data-signature="intro" aria-hidden="true"></div>
+
+        <div class="hero__copy">
+          <h1 class="hero__title" data-intro="lines">Sofiyan Shaikh</h1>
+          <p class="hero__role" data-intro="fade">
+            iOS and web developer. First-year computer science student at UIT, Karnavati
+            University.
+          </p>
+          <p class="hero__hint" data-intro="fade">
+            Sweep the cursor across the photo to see what is underneath.
+          </p>
+        </div>
+      </section>
+
+      <!-- ABOUT ----------------------------------------------------------- -->
+      <section class="about" id="about" data-nav-theme="light">
+        <h2 class="about__lede" data-split="lines">
+          First-year computer science student, building for iPhone and the web.
+        </h2>
+
+        <dl class="facts">
+          <div class="facts__row">
+            <dt>Based in</dt>
+            <dd>Gandhinagar, Gujarat</dd>
+          </div>
+          <div class="facts__row">
+            <dt>Studying</dt>
+            <dd>B.Tech CSE (AI &amp; ML) Hons., Generative AI with IBM, 2026 to 2030</dd>
+          </div>
+          <div class="facts__row">
+            <dt>College</dt>
+            <dd>Unitedworld Institute of Technology, Karnavati University</dd>
+          </div>
+          <div class="facts__row">
+            <dt>Working with</dt>
+            <dd>Swift, SwiftUI, React, TypeScript, Three.js, Python</dd>
+          </div>
+          <div class="facts__row">
+            <dt>Open to</dt>
+            <dd>Internships and project work in AI, web and iOS</dd>
+          </div>
+        </dl>
+
+        <div class="about__body">
+          <p>
+            I'm studying computer science and engineering with a specialisation in generative
+            AI. So far I've shipped three web applications and built two native iOS apps in
+            Swift and SwiftUI.
+          </p>
+          <p>
+            I led a six-person team at Smart India Hackathon 2026, and I'm looking for
+            internships and project work in AI, web and iOS development.
+          </p>
+          <p class="about__files">
+            <a class="link" href="/files/Sofiyan-Shaikh-Resume.pdf" target="_blank" rel="noopener">Résumé (PDF)</a>
+            <a class="link" href="/files/Sofiyan-Shaikh-CV.pdf" target="_blank" rel="noopener">CV (PDF)</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- TOOLS: an endless band that answers the scroll (src/motion/ticker.js) - -->
+      <section class="ticker" aria-label="Tools I work with" data-nav-theme="light">
+        <div class="ticker__track" data-ticker>
+          <ul class="ticker__list">
+            <li>Swift</li>
+            <li>SwiftUI</li>
+            <li>React</li>
+            <li>TypeScript</li>
+            <li>Three.js</li>
+            <li>Next.js</li>
+            <li>Supabase</li>
+            <li>Python</li>
+            <li>Xcode</li>
+            <li>Tailwind CSS</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- WORK: scrolls sideways on desktop, stacks on small screens ------- -->
+      <section class="work" id="work" data-nav-theme="dark" data-horizontal>
+        <div class="work__sticky" data-horizontal-sticky>
+          <div class="work__track" data-horizontal-track>
+            <header class="work__intro">
+              <h2 class="work__heading">Selected work</h2>
+              <p>
+                Six projects, each shown as a wireframe of what it is. Keep scrolling to move
+                along the sheets; certificates are at the end.
+              </p>
+            </header>
+
+            <article class="sheet" data-horizontal-item>
+              <div class="sheet__drawing">
+                <!-- A foldable phone, open: games on one half, the coach on the other. -->
+                <svg class="sheet__svg" viewBox="0 0 340 300" aria-hidden="true">
+                  <rect x="10" y="20" width="320" height="260" rx="26" />
+                  <line x1="170" y1="20" x2="170" y2="280" stroke-dasharray="5 6" />
+                  <rect x="30" y="44" width="56" height="56" rx="10" />
+                  <rect x="96" y="44" width="56" height="56" rx="10" />
+                  <rect x="30" y="110" width="56" height="56" rx="10" />
+                  <rect x="96" y="110" width="56" height="56" rx="10" />
+                  <line x1="30" y1="196" x2="130" y2="196" />
+                  <line x1="30" y1="220" x2="104" y2="220" />
+                  <rect x="190" y="48" width="96" height="34" rx="14" />
+                  <rect x="214" y="96" width="96" height="48" rx="14" />
+                  <rect x="190" y="158" width="74" height="34" rx="14" />
+                  <rect x="190" y="230" width="120" height="30" rx="15" />
+                </svg>
+              </div>
+              <div class="sheet__text">
+                <h3 class="sheet__title">Unfold</h3>
+                <p>
+                  A learning arcade for iPhone. Its four games use the foldable's hinge as the
+                  controller, and an on-device Apple Intelligence coach answers from the app's
+                  own lessons.
+                </p>
+                <a class="link" href="https://github.com/sofiyandev56-spec/Unfold" target="_blank" rel="noopener">Unfold on GitHub</a>
+              </div>
+              <dl class="sheet__block">
+                <div><dt>Year</dt><dd>2026</dd></div>
+                <div><dt>Type</dt><dd>Native iOS app</dd></div>
+                <div><dt>Built with</dt><dd>Swift, SwiftUI, FoundationModels</dd></div>
+              </dl>
+            </article>
+
+            <article class="sheet" data-horizontal-item>
+              <div class="sheet__drawing">
+                <!-- A phone: lesson list with progress, an XP bar and a badge. -->
+                <svg class="sheet__svg" viewBox="0 0 200 400" aria-hidden="true">
+                  <rect x="10" y="10" width="180" height="380" rx="28" />
+                  <line x1="30" y1="50" x2="104" y2="50" />
+                  <path d="M152 36 l12 7 v14 l-12 7 l-12 -7 v-14 z" />
+                  <rect x="30" y="74" width="140" height="10" rx="5" />
+                  <rect x="30" y="74" width="92" height="10" rx="5" />
+                  <rect x="30" y="106" width="140" height="52" rx="12" />
+                  <rect x="30" y="168" width="140" height="52" rx="12" />
+                  <rect x="30" y="230" width="140" height="52" rx="12" />
+                  <path d="M44 132 h60 M44 194 h74 M44 256 h50" />
+                  <circle cx="150" cy="132" r="8" />
+                  <circle cx="150" cy="194" r="8" />
+                  <circle cx="150" cy="256" r="8" />
+                  <path d="M146 132 l3 3 l6 -7" />
+                  <rect x="30" y="312" width="140" height="44" rx="22" />
+                </svg>
+              </div>
+              <div class="sheet__text">
+                <h3 class="sheet__title">Programmer Corner</h3>
+                <p>
+                  A SwiftUI app for learning Swift: 52 lessons across 8 topics, 8 mini-games,
+                  and XP, levels and badges. Designed with Liquid Glass, with VoiceOver and
+                  Reduce Motion support.
+                </p>
+                <a class="link" href="https://github.com/sofiyandev56-spec/iOS-Development-Workshop" target="_blank" rel="noopener">Programmer Corner on GitHub</a>
+              </div>
+              <dl class="sheet__block">
+                <div><dt>Year</dt><dd>2026</dd></div>
+                <div><dt>Type</dt><dd>Native iOS app</dd></div>
+                <div><dt>Built with</dt><dd>Swift, SwiftUI, Liquid Glass</dd></div>
+              </dl>
+            </article>
+
+            <article class="sheet" data-horizontal-item>
+              <div class="sheet__drawing">
+                <!-- A phone: a month of appointment slots and a booking button. -->
+                <svg class="sheet__svg" viewBox="0 0 200 400" aria-hidden="true">
+                  <rect x="10" y="10" width="180" height="380" rx="28" />
+                  <line x1="30" y1="50" x2="118" y2="50" />
+                  <rect x="30" y="72" width="140" height="150" rx="12" />
+                  <path d="M30 102 H170 M65 102 V222 M100 102 V222 M135 102 V222 M30 132 H170 M30 162 H170 M30 192 H170" />
+                  <circle cx="117.5" cy="147" r="9" />
+                  <rect x="30" y="240" width="40" height="26" rx="13" />
+                  <rect x="80" y="240" width="40" height="26" rx="13" />
+                  <rect x="130" y="240" width="40" height="26" rx="13" />
+                  <line x1="30" y1="292" x2="150" y2="292" />
+                  <rect x="30" y="316" width="140" height="42" rx="21" />
+                </svg>
+              </div>
+              <div class="sheet__text">
+                <h3 class="sheet__title">HappyNest Clinic</h3>
+                <p>
+                  A booking site for a pediatric clinic. Parents book slots and fill intake
+                  forms from their phones; the doctor tracks immunizations against the IAP
+                  checklist.
+                </p>
+                <a class="link" href="https://happy-nest-clinic.vercel.app" target="_blank" rel="noopener">Visit HappyNest Clinic</a>
+              </div>
+              <dl class="sheet__block">
+                <div><dt>Year</dt><dd>2026</dd></div>
+                <div><dt>Type</dt><dd>Web app</dd></div>
+                <div><dt>Built with</dt><dd>TanStack Start, React, TypeScript, Supabase</dd></div>
+              </dl>
+            </article>
+
+            <article class="sheet" data-horizontal-item>
+              <div class="sheet__drawing">
+                <!-- A dashboard in a browser: outcome bars with an evidence tier beside each. -->
+                <svg class="sheet__svg" viewBox="0 0 360 270" aria-hidden="true">
+                  <rect x="10" y="10" width="340" height="250" rx="14" />
+                  <line x1="10" y1="44" x2="350" y2="44" />
+                  <circle cx="30" cy="27" r="4" />
+                  <circle cx="46" cy="27" r="4" />
+                  <circle cx="62" cy="27" r="4" />
+                  <line x1="96" y1="44" x2="96" y2="260" />
+                  <path d="M26 70 H80 M26 94 H72 M26 118 H80 M26 142 H64" />
+                  <path d="M120 230 H330" />
+                  <rect x="130" y="150" width="30" height="80" />
+                  <rect x="176" y="112" width="30" height="118" />
+                  <rect x="222" y="134" width="30" height="96" />
+                  <rect x="268" y="84" width="30" height="146" />
+                  <rect x="120" y="62" width="66" height="22" rx="11" />
+                  <rect x="196" y="62" width="50" height="22" rx="11" />
+                </svg>
+              </div>
+              <div class="sheet__text">
+                <h3 class="sheet__title">SkillTrace</h3>
+                <p>
+                  Tracks what happens to trainees after government skilling programmes, and
+                  reaches people without smartphones by SMS, IVR and web check-in. Built in
+                  about 36 hours at Smart India Hackathon 2026.
+                </p>
+                <a class="link" href="https://github.com/sofiyandev56-spec/skilltrace-sih2026" target="_blank" rel="noopener">SkillTrace on GitHub</a>
+              </div>
+              <dl class="sheet__block">
+                <div><dt>Year</dt><dd>2026</dd></div>
+                <div><dt>Type</dt><dd>Hackathon build, team of six</dd></div>
+                <div><dt>Built with</dt><dd>JavaScript</dd></div>
+              </dl>
+            </article>
+
+            <article class="sheet" data-horizontal-item>
+              <div class="sheet__drawing">
+                <!-- A browser window holding a wireframe solid: the 3D model in the old hero. -->
+                <svg class="sheet__svg" viewBox="0 0 360 270" aria-hidden="true">
+                  <rect x="10" y="10" width="340" height="250" rx="14" />
+                  <line x1="10" y1="44" x2="350" y2="44" />
+                  <circle cx="30" cy="27" r="4" />
+                  <circle cx="46" cy="27" r="4" />
+                  <circle cx="62" cy="27" r="4" />
+                  <path d="M180 70 L250 112 L250 192 L180 234 L110 192 L110 112 Z" />
+                  <path d="M180 70 L180 152 M110 112 L180 152 L250 112 M180 152 L180 234 M110 192 L180 152 L250 192" />
+                  <path d="M300 96 V208" stroke-dasharray="4 5" />
+                  <rect x="295" y="120" width="10" height="26" rx="5" />
+                </svg>
+              </div>
+              <div class="sheet__text">
+                <h3 class="sheet__title">Interactive 3D portfolio</h3>
+                <p>
+                  My previous portfolio, with a 3D model in the hero and scroll-driven
+                  animation. Simplifying a 1.4 million triangle scan cut the hero from 39 MB to
+                  2.4 MB.
+                </p>
+                <a class="link" href="https://sofiyan-shaikh.vercel.app" target="_blank" rel="noopener">Visit the 3D portfolio</a>
+              </div>
+              <dl class="sheet__block">
+                <div><dt>Year</dt><dd>2026</dd></div>
+                <div><dt>Type</dt><dd>Website</dd></div>
+                <div><dt>Built with</dt><dd>Next.js, React Three Fiber, Framer Motion</dd></div>
+              </dl>
+            </article>
+
+            <article class="sheet" data-horizontal-item>
+              <div class="sheet__drawing">
+                <!-- A dashboard-mounted box watching an eye, with an alert going off. -->
+                <svg class="sheet__svg" viewBox="0 0 360 270" aria-hidden="true">
+                  <rect x="40" y="150" width="130" height="84" rx="12" />
+                  <circle cx="84" cy="192" r="20" />
+                  <circle cx="84" cy="192" r="8" />
+                  <circle cx="140" cy="172" r="6" />
+                  <line x1="128" y1="204" x2="152" y2="204" />
+                  <line x1="128" y1="216" x2="152" y2="216" />
+                  <path d="M104 178 L214 92 M104 206 L214 132" stroke-dasharray="4 6" />
+                  <path d="M206 112 Q250 68 294 112 Q250 150 206 112 Z" />
+                  <circle cx="250" cy="110" r="13" />
+                  <path d="M214 100 Q250 86 286 100" />
+                  <path d="M176 160 q10 -12 0 -24 M190 168 q18 -20 0 -40" />
+                  <path d="M20 250 H340" />
+                </svg>
+              </div>
+              <div class="sheet__text">
+                <h3 class="sheet__title">Polaris</h3>
+                <p>
+                  A cockpit-mounted device that detects micro-sleeps in truck and bus drivers
+                  on long hauls and sets off a buzzer and flashing light. In progress, with a
+                  team of six.
+                </p>
+              </div>
+              <dl class="sheet__block">
+                <div><dt>Year</dt><dd>2026, ongoing</dd></div>
+                <div><dt>Type</dt><dd>Team semester project</dd></div>
+                <div><dt>Built with</dt><dd>Internet of Things hardware</dd></div>
+              </dl>
+            </article>
+
+            <header class="work__intro work__intro--certificates">
+              <h2 class="work__heading">Certificates</h2>
+              <p>Proof of training, shown as issued.</p>
+            </header>
+
+            <article class="sheet sheet--certificate" data-horizontal-item>
+              <a
+                class="sheet__drawing sheet__drawing--image"
+                href="/certificates/ios-development-workshop-2026.jpg"
+                target="_blank"
+                rel="noopener"
+              >
+                <img
+                  src="/certificates/ios-development-workshop-2026.jpg"
+                  width="1080"
+                  height="762"
+                  loading="lazy"
+                  alt="Certificate of participation presented to Sofiyan Shaikh for the iOS Application Development Workshop at UIT, Karnavati University, 29 to 30 October 2026"
+                />
+              </a>
+              <div class="sheet__text">
+                <h3 class="sheet__title">iOS Application Development Workshop</h3>
+                <p>
+                  Two days of Swift, SwiftUI and Xcode with Apple Authorised mentors at UIT's
+                  Apple Authorised Training Centre for Education.
+                </p>
+              </div>
+              <dl class="sheet__block">
+                <div><dt>Date</dt><dd>29 to 30 Oct 2026</dd></div>
+                <div><dt>Type</dt><dd>Participation</dd></div>
+                <div><dt>Issued by</dt><dd>UIT, Karnavati University</dd></div>
+              </dl>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- RECORD: leadership and research ---------------------------------- -->
+      <section class="record" id="record" data-nav-theme="light">
+        <h2 class="record__heading" data-split="lines">Leadership and research</h2>
+
+        <dl class="record__list">
+          <div class="record__row">
+            <dt>Team leader, Tech Titans</dt>
+            <dd>
+              Smart India Hackathon 2026. Led six people through a 36-hour build of SkillTrace,
+              owned the architecture and the proposal, and ran task distribution and API design
+              reviews.
+            </dd>
+          </div>
+          <div class="record__row">
+            <dt>Independent research</dt>
+            <dd>
+              A 47-page self-directed analysis of foundation models, AI inference economics
+              and multimodal architectures.
+            </dd>
+          </div>
+          <div class="record__row">
+            <dt>DocLens AI</dt>
+            <dd>
+              Concept and pitch for a document-intelligence tool that redacts ID details on
+              the device. Led the design and the pitch.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- CONTACT --------------------------------------------------------- -->
+      <footer class="contact" id="contact" data-nav-theme="dark">
+        <div class="contact__gl" data-gl="contours"></div>
+
+        <div class="contact__copy">
+          <h2 class="contact__heading" data-split="lines">
+            Have an internship or a project in mind?
+          </h2>
+          <a class="contact__mail" href="mailto:sofiyan.dev56@gmail.com">sofiyan.dev56@gmail.com</a>
+
+          <ul class="contact__links">
+            <li><a class="link" href="https://github.com/sofiyandev56-spec" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a class="link" href="https://www.linkedin.com/in/sofiyan-shaikh-838328404" target="_blank" rel="noopener">LinkedIn</a></li>
+            <li><a class="link" href="/files/Sofiyan-Shaikh-Resume.pdf" target="_blank" rel="noopener">Résumé (PDF)</a></li>
+            <li><a class="link" href="/files/Sofiyan-Shaikh-CV.pdf" target="_blank" rel="noopener">CV (PDF)</a></li>
+          </ul>
+
+          <div class="contact__foot">
+            <p class="contact__fine">© 2026 Sofiyan Shaikh</p>
+            <div
+              class="signature signature--footer"
+              data-signature="scroll"
+              role="img"
+              aria-label="Signature of Sofiyan Shaikh"
+            ></div>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

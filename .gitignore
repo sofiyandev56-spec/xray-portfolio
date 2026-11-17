@@ -1,0 +1,16 @@
+node_modules
+dist
+.DS_Store
+
+# Local tooling output
+.playwright-mcp/
+tools/xray/xray-preview.png
+tools/signature/preview.png
+
+# Third-party reference images used to build public/hero/xray.webp. They are not
+# ours to redistribute, so they stay out of the repo; see tools/xray/sources/README.md.
+tools/xray/sources/*.jpg
+tools/xray/sources/skull-mask.png
+
+# Local Claude app config
+.claude/

@@ -1,0 +1,766 @@
+/* ---------------------------------------------------------------- hero */
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 100svh;
+  min-height: 34rem;
+  padding: 0 var(--pad) 3rem;
+  background: var(--c-paper);
+  transition: background 1.2s var(--ease);
+  /* The portrait's box may overhang the sides; without this a phone zooms out to fit it. */
+  overflow: clip;
+}
+
+/* The page opens as a blueprint, then develops into the paper surface. */
+.js.is-loading .hero {
+  background: var(--c-blue);
+  transition: none;
+}
+
+/* The desk edge: the portrait is cropped at the MacBook's base, so give it something to sit on. */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  height: 1px;
+  background: var(--c-ink);
+}
+
+.hero__gl {
+  position: absolute;
+  inset: 0;
+}
+
+/*
+  The portrait's box. WebGL draws the picture exactly where this element is, so
+  position and size it here like any image. It is only painted by the browser
+  itself when WebGL is unavailable.
+*/
+.hero__portrait {
+  position: absolute;
+  bottom: 0;
+  left: 69%;
+  height: 84%;
+  width: auto;
+  max-width: none;
+  aspect-ratio: 843 / 818;
+  transform: translateX(-50%);
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Invisible but still in the accessibility tree, so its alt text is read out.
+   (visibility: hidden would remove it for screen readers too.) */
+.js .hero__portrait {
+  opacity: 0;
+}
+
+.js.no-gl .hero__portrait {
+  opacity: 1;
+}
+
+.signature--intro {
+  position: absolute;
+  left: 69%;
+  bottom: 22%;
+  z-index: 3;
+  width: 52rem;
+  max-width: 92vw;
+  color: var(--c-accent);
+  transform: translateX(-50%);
+}
+
+.hero__copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 1.25rem;
+  max-width: 34rem;
+  color: var(--c-knockout);
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-size: 7rem;
+  font-weight: 800;
+  font-stretch: 130%;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+.hero__role {
+  max-width: 24rem;
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+.hero__hint {
+  max-width: 20rem;
+  font-size: var(--text-s);
+  font-style: italic;
+  line-height: 1.3;
+}
+
+/* Nothing to sweep without a cursor; the reveal plays on its own there. */
+@media (hover: none) {
+  .hero__hint {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------- about */
+
+.about {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  row-gap: 5rem;
+  padding: 10rem var(--pad) 11rem;
+  background: var(--c-paper);
+}
+
+.about__lede {
+  grid-column: 1 / span 10;
+  font-family: var(--font-display);
+  font-size: 3.75rem;
+  font-weight: 700;
+  font-stretch: 115%;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+
+.facts {
+  grid-column: 1 / span 4;
+  display: grid;
+  align-content: start;
+  border-top: 1px solid var(--c-paper-line);
+}
+
+.facts__row {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--c-paper-line);
+}
+
+.facts dt {
+  font-style: italic;
+  font-size: var(--text-s);
+}
+
+.facts dd {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-stretch: 105%;
+  line-height: 1.35;
+}
+
+.about__body {
+  grid-column: 6 / span 6;
+  display: grid;
+  gap: 1.25em;
+  max-width: 36rem;
+  font-size: 1.5rem;
+  line-height: 1.45;
+}
+
+.about__files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  font-size: max(1.15rem, 16px);
+}
+
+/* -------------------------------------------------------------- ticker */
+
+.ticker {
+  overflow: clip;
+  padding: 3rem 0;
+  background: var(--c-paper);
+  border-top: 1px solid var(--c-paper-line);
+}
+
+.ticker__track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.ticker__list {
+  display: flex;
+  flex: none;
+}
+
+.ticker__list li {
+  display: flex;
+  align-items: center;
+  gap: 3.5rem;
+  padding-right: 3.5rem;
+  font-family: var(--font-display);
+  font-size: 6.5rem;
+  font-weight: 800;
+  font-stretch: 125%;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* A drafting registration mark between words. */
+.ticker__list li::after {
+  content: '';
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='%23ffb400' stroke-width='3'%3E%3Ccircle cx='20' cy='20' r='11'/%3E%3Cpath d='M20 0v40M0 20h40'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/* ---------------------------------------------------------------- work */
+
+.work {
+  background: var(--c-blue);
+  color: var(--c-paper);
+}
+
+.work__track {
+  display: grid;
+  /* minmax(0, ...) so one long unbreakable word can't widen the column past the screen. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3rem;
+  padding: 7rem var(--pad);
+}
+
+.work__intro {
+  display: grid;
+  gap: 1.5rem;
+  align-content: end;
+  max-width: 26rem;
+}
+
+.work__heading {
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  font-weight: 800;
+  font-stretch: 135%;
+  line-height: 0.94;
+  letter-spacing: -0.015em;
+}
+
+.work__intro p {
+  color: var(--c-line);
+}
+
+/* A project is a drafting sheet: drawing, description, and a title block along the foot. */
+.sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  border: 1px solid color-mix(in srgb, var(--c-line) 55%, transparent);
+}
+
+.sheet__drawing {
+  display: grid;
+  place-items: center;
+  min-height: 16rem;
+  padding: 2.25rem;
+  /* Blueprint grid behind the drawing. */
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--c-line) 14%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--c-line) 14%, transparent) 1px, transparent 1px);
+  background-size: 2rem 2rem;
+  background-position: center;
+}
+
+.sheet__svg {
+  height: 100%;
+  max-height: 22rem;
+  width: auto;
+  max-width: 100%;
+  fill: none;
+  stroke: var(--c-paper);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  overflow: visible;
+}
+
+.sheet__svg * {
+  vector-effect: non-scaling-stroke;
+}
+
+/*
+  A certificate is shown as issued: the scan itself, on the sheet's grid. The image
+  is taken out of flow so it fits whatever height the drawing row has, instead of
+  pushing the row taller than the sheet.
+*/
+.sheet__drawing--image {
+  position: relative;
+  padding: 0;
+}
+
+.sheet__drawing--image img {
+  position: absolute;
+  inset: 1.75rem;
+  width: calc(100% - 3.5rem);
+  height: calc(100% - 3.5rem);
+  object-fit: contain;
+  filter: drop-shadow(0 0 1px color-mix(in srgb, var(--c-line) 80%, transparent));
+}
+
+.sheet__text {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+  padding: 1.75rem 1.75rem 2rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-line) 55%, transparent);
+}
+
+.sheet__title {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  font-stretch: 125%;
+  line-height: 1;
+}
+
+.sheet__text p {
+  max-width: 24rem;
+  color: var(--c-line);
+}
+
+.sheet__block {
+  display: grid;
+  grid-template-columns: 0.7fr 1.2fr 1.6fr;
+  border-top: 1px solid color-mix(in srgb, var(--c-line) 55%, transparent);
+}
+
+.sheet__block > div {
+  padding: 0.8rem 1rem 0.9rem;
+}
+
+.sheet__block > div + div {
+  border-left: 1px solid color-mix(in srgb, var(--c-line) 55%, transparent);
+}
+
+.sheet__block dt {
+  font-style: italic;
+  font-size: var(--text-xs);
+  color: var(--c-line);
+}
+
+.sheet__block dd {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/*
+  Sideways mode. src/motion/horizontal.js adds .is-horizontal on wide screens when
+  motion is allowed, sets the section's height to the track's overflow, and scrubs
+  the track's x. The pinning itself is plain position: sticky.
+*/
+.work.is-horizontal .work__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: clip;
+}
+
+.work.is-horizontal .work__track {
+  display: flex;
+  align-items: stretch;
+  gap: 2.5rem;
+  width: max-content;
+  height: 100%;
+  padding: calc(var(--nav-h) + 2rem) var(--pad) 3rem;
+  will-change: transform;
+}
+
+.work.is-horizontal .work__intro {
+  flex: none;
+  width: 36rem;
+  max-width: none;
+  padding-right: 3rem;
+}
+
+.work.is-horizontal .work__intro p {
+  max-width: 24rem;
+}
+
+.work.is-horizontal .sheet {
+  flex: none;
+  width: 31rem;
+}
+
+.work.is-horizontal .work__intro--certificates {
+  width: 48rem;
+  padding-left: 4rem;
+}
+
+.work.is-horizontal .sheet--certificate {
+  width: 40rem;
+}
+
+/* -------------------------------------------------------------- record */
+
+.record {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  row-gap: 4rem;
+  padding: 9rem var(--pad) 10rem;
+  background: var(--c-paper);
+}
+
+.record__heading {
+  grid-column: 1 / span 10;
+  font-family: var(--font-display);
+  font-size: 3.75rem;
+  font-weight: 700;
+  font-stretch: 115%;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+
+.record__list {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--c-paper-line);
+}
+
+.record__row {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  padding: 1.6rem 0 1.75rem;
+  border-bottom: 1px solid var(--c-paper-line);
+}
+
+.record__row dt {
+  grid-column: 1 / span 5;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-stretch: 115%;
+  line-height: 1.1;
+}
+
+.record__row dd {
+  grid-column: 6 / span 6;
+  max-width: 36rem;
+}
+
+/* ------------------------------------------------------------- contact */
+
+.contact {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 100svh;
+  padding: 10rem var(--pad) 2.5rem;
+  background: var(--c-blue);
+  color: var(--c-paper);
+}
+
+.contact__gl {
+  position: absolute;
+  inset: 0;
+}
+
+.contact__copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: start;
+  width: 100%;
+}
+
+.contact__heading {
+  font-size: 2.25rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--c-line);
+}
+
+.contact__mail {
+  margin-top: 1rem;
+  font-family: var(--font-display);
+  font-size: 4.6rem;
+  font-weight: 800;
+  font-stretch: 100%;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  /* The address widens under the pointer: the variable font's width axis doing the work. */
+  transition: font-stretch 0.6s var(--ease), color 0.4s var(--ease);
+}
+
+.contact__mail:hover,
+.contact__mail:focus-visible {
+  font-stretch: 122%;
+  color: var(--c-accent);
+}
+
+.contact__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2.25rem;
+  margin-top: 4rem;
+}
+
+.contact__foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  width: 100%;
+  margin-top: 2.5rem;
+}
+
+.contact__fine {
+  font-size: var(--text-xs);
+  color: var(--c-line);
+}
+
+.signature--footer {
+  width: 17rem;
+  color: var(--c-paper);
+}
+
+/*
+  Stacked hero, for phones and tablets held upright: the name and role at the
+  top, the portrait taking whatever height is left beneath them. The portrait image
+  joins the flow here, so the room it gets depends on how tall the text runs.
+*/
+@media (orientation: portrait) and (max-width: 1180px) {
+  .hero {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: calc(var(--nav-h) + 1rem);
+    padding-bottom: 0;
+  }
+
+  .hero__copy {
+    order: -1;
+    align-self: stretch;
+  }
+
+  .hero__portrait {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+    width: auto;
+    transform: none;
+  }
+
+  .signature--intro {
+    left: 50%;
+    bottom: 16%;
+  }
+}
+
+/* --------------------------------------------------------- small screens */
+
+@media (max-width: 767px) {
+  /* The résumé is linked from About and Contact; the bar has no room for it here. */
+  .nav__resume {
+    display: none;
+  }
+
+  /* Text scrolls under the bar on a narrow screen, so give it a backing. */
+  .nav {
+    background: color-mix(in srgb, var(--c-paper) 88%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transition: color 0.4s var(--ease), background-color 0.4s var(--ease);
+  }
+
+  .nav[data-theme='dark'] {
+    background: color-mix(in srgb, var(--c-blue) 88%, transparent);
+  }
+
+  .ticker {
+    padding: 2rem 0;
+  }
+
+  .ticker__list li {
+    gap: 2rem;
+    padding-right: 2rem;
+    font-size: 3.2rem;
+  }
+
+  .ticker__list li::after {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .work__heading {
+    font-size: 2.3rem;
+    font-stretch: 115%;
+  }
+
+  .sheet__title {
+    font-size: 1.85rem;
+    font-stretch: 112%;
+  }
+
+  .nav {
+    font-size: 0.9rem;
+    font-stretch: 100%;
+  }
+
+  .nav__name {
+    font-stretch: 120%;
+  }
+
+  .nav__links {
+    gap: 0.9rem;
+  }
+
+  .hero__title {
+    font-size: 3.4rem;
+    font-stretch: 125%;
+  }
+
+  .hero__role {
+    font-size: 1.15rem;
+  }
+
+  .record {
+    display: block;
+    padding: 5.5rem var(--pad) 6rem;
+  }
+
+  .record__heading {
+    font-size: 2.1rem;
+  }
+
+  .record__list {
+    margin-top: 2.5rem;
+  }
+
+  .record__row {
+    display: block;
+  }
+
+  .record__row dt {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .signature--footer {
+    width: 9.5rem;
+  }
+
+  .about {
+    display: block;
+    padding: 5.5rem var(--pad) 6rem;
+  }
+
+  .about__lede {
+    font-size: 2.1rem;
+  }
+
+  .facts {
+    margin-top: 3rem;
+  }
+
+  .about__body {
+    margin-top: 3rem;
+    font-size: 1.2rem;
+  }
+
+  .work__track {
+    padding: 5rem var(--pad);
+  }
+
+
+  .sheet__block {
+    grid-template-columns: 1fr;
+  }
+
+  .sheet__block > div + div {
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--c-line) 55%, transparent);
+  }
+
+  .contact {
+    padding-top: 7rem;
+  }
+
+  .contact__heading {
+    font-size: 1.6rem;
+  }
+
+  .contact__mail {
+    font-size: 1.35rem;
+    overflow-wrap: normal;
+  }
+
+  .contact__mail:hover,
+  .contact__mail:focus-visible {
+    font-stretch: 115%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+  Short landscape screens (a phone on its side): the hero is only ~375px tall, so
+  the name is sized from the height and the photo stays beside it.
+*/
+@media (orientation: landscape) and (max-height: 540px) {
+  .hero {
+    min-height: 0;
+    padding-bottom: 1.5rem;
+  }
+
+  /* Keep the text in the left half, clear of the photo. */
+  .hero__copy {
+    max-width: 44vw;
+  }
+
+  .hero__title {
+    font-size: min(4.2rem, 13vh, 9vw);
+    font-stretch: 125%;
+  }
+
+  .hero__role {
+    max-width: 22rem;
+    font-size: min(1.2rem, 4.6vh);
+  }
+
+  .hero__hint {
+    display: none;
+  }
+
+  /* Below the navigation bar, which has a backing on narrow screens. */
+  .hero__portrait {
+    left: 72%;
+    height: calc(100% - var(--nav-h) - 0.5rem);
+  }
+
+  .signature--intro {
+    left: 70%;
+    width: min(34rem, 60vw);
+  }
+}
+
