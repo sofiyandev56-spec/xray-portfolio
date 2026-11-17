@@ -8,6 +8,9 @@ Leave the cursor alone and a virtual one sweeps the photo for you.
 
 Built with Vite, Three.js, GSAP and Lenis. No framework.
 
+Live at **https://xray-portfolio-five.vercel.app**. Every push to `main` deploys there through Vercel's GitHub
+integration.
+
 ## Run it
 
 ```bash
@@ -109,8 +112,8 @@ photo, re-measure the positions at the top of `tools/xray/build.py`, and keep
   Intel-era model; Apple silicon Airs, including the M4, are fanless.
 - **The résumé PDF includes a phone number** and still lists the agilescitech.in
   rebuild, which is no longer claimed on the site.
-- **Link previews:** make `og:image` in `index.html` an absolute URL once the site
-  has a domain; some services ignore relative ones.
+- **Link previews:** `og:url`, `og:image` and the canonical link in `index.html`
+  use the vercel.app address; update them if the site moves to its own domain.
 
 ## Good to know
 

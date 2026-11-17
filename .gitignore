@@ -14,3 +14,5 @@ tools/xray/sources/skull-mask.png
 
 # Local Claude app config
 .claude/
+.vercel
+.env*
