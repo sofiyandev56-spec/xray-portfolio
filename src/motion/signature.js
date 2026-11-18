@@ -1,10 +1,10 @@
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import signatureStrokes from '../data/signature-strokes.json'
-import nameStrokes from '../data/name-strokes.json'
+import autographStrokes from '../data/autograph-strokes.json'
 
 /*
-  Handwriting, written stroke by stroke. Two kinds, chosen with data-ink:
+  Handwriting, written stroke by stroke. Two inks, chosen with data-ink:
 
     data-ink="signature"  the real autograph, revealed: public/hero/signature.png
                           is the scanned ink, src/data/signature-strokes.json its
@@ -12,13 +12,17 @@ import nameStrokes from '../data/name-strokes.json'
                           centre lines mask the ink in, so the scan keeps its own
                           line quality. (The default.)
 
-    data-ink="name"       the full name as a marker autograph, drawn: the strokes
-                          in src/data/name-strokes.json are the visible line
-                          itself, one bold even width, growing along the path the
-                          way the Rive autograph on landonorris.com is drawn.
+    data-ink="autograph"  the brush-pen signature with the crown
+                          (public/hero/autograph.png), revealed the same way but
+                          written the way a person signs it: each stroke starts
+                          and ends where the pen did, in the order it went, at the
+                          pen's own changing speed (fast sweeps, slow turns,
+                          pauses as the pen lifts). The route and its timing,
+                          src/data/autograph-strokes.json, come from
+                          tools/signature/pen_path.py.
 
-  Both JSON files come from tools/signature/vectorize.py and list strokes in
-  writing order.
+  signature-strokes.json comes from tools/signature/vectorize.py and is written
+  at an even pace.
 
     data-signature="intro"   written by the intro sequence (src/motion/intro.js)
     data-signature="scroll"  written as the footer scrolls into view, and unwritten
@@ -31,12 +35,26 @@ import nameStrokes from '../data/name-strokes.json'
 const SVG = 'http://www.w3.org/2000/svg'
 const INKS = {
   signature: { src: '/hero/signature.png', data: signatureStrokes },
-  name: { data: nameStrokes }, // no image: drawn directly as strokes
+  autograph: { src: '/hero/autograph.png', data: autographStrokes },
 }
+// The even pace, for strokes that carry no timing of their own:
 const SPEED = 2300 // image pixels per second, for letters
 const FLOURISH_SPEED = 3800 // the closing swoops are quicker
 const PEN_LIFT = 0.05 // seconds the pen spends off the paper between strokes
 let uid = 0
+
+/**
+ * An ease that replays a stroke's recorded progress: samples[i] is how far
+ * along the stroke the pen is at i / (samples.length - 1) of its time.
+ */
+function sampled(samples) {
+  const last = samples.length - 1
+  return (p) => {
+    const x = Math.min(Math.max(p, 0), 1) * last
+    const i = Math.min(Math.floor(x), last - 1)
+    return samples[i] + (samples[i + 1] - samples[i]) * (x - i)
+  }
+}
 
 function el(name, attrs = {}, parent) {
   const node = document.createElementNS(SVG, name)
@@ -47,18 +65,22 @@ function el(name, attrs = {}, parent) {
 
 /**
  * Add one path per stroke to `parent`, hidden (fully dashed out), and note for
- * each whether the pen lifted before it: a gap wider than `liftAt`.
+ * each whether the pen lifted before it: a gap wider than `liftAt`. A stroke may
+ * carry its own pen width (w) and timing (t: start, d: duration, e: progress).
  */
 function track(strokes, parent, liftAt) {
   let prev = null
-  return strokes.map(({ k, p }) => {
+  return strokes.map(({ k, p, w, t, d, e }) => {
     const node = el('path', { d: 'M' + p.map(([x, y]) => `${x} ${y}`).join('L') }, parent)
     const length = node.getTotalLength() || 1
-    node.style.strokeDasharray = `${length} ${length + 1}`
-    node.style.strokeDashoffset = length
+    // Hidden: the dash sits a pixel before the path's start. Exactly at the
+    // start, rounding can leave a hair of dash, which a round cap draws as a dot.
+    node.style.strokeDasharray = `${length} ${length + 2}`
+    node.style.strokeDashoffset = length + 1
+    if (w) node.style.strokeWidth = w
     const lifted = !prev || Math.hypot(p[0][0] - prev[0], p[0][1] - prev[1]) > liftAt
     if (k !== 't') prev = p[p.length - 1]
-    return { node, length, kind: k, lifted }
+    return { node, length, kind: k, lifted, timing: e && { at: t, duration: d, ease: sampled(e) } }
   })
 }
 
@@ -72,22 +94,7 @@ function mount(host) {
 
   const svg = el('svg', { viewBox: `0 0 ${w} ${h}`, 'aria-hidden': 'true', focusable: 'false' })
 
-  // Drawn: the strokes are the visible line.
-  if (!ink.src) {
-    const line = ink.data.strokeWidth
-    const pen = el(
-      'g',
-      { fill: 'none', stroke: 'currentColor', 'stroke-width': line, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
-      svg,
-    )
-    const paths = track(ink.data.strokes, pen, line * 1.6)
-    host.appendChild(svg)
-    host.classList.add('is-drawn-by-js')
-    host._signature = paths
-    return paths
-  }
-
-  // Revealed: invisible strokes uncover the scanned ink.
+  // Invisible strokes uncover the scanned ink.
   const defs = el('defs', {}, svg)
   const inkMask = el('mask', { id: `${id}-ink`, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: w, height: h }, defs)
   el('image', { href: ink.src, x: 0, y: 0, width: w, height: h }, inkMask)
@@ -124,7 +131,12 @@ export function signatureTimeline(host, { speed = 1 } = {}) {
   const paths = mount(host)
   const tl = gsap.timeline({ paused: true })
   let t = 0
-  for (const { node, length, kind, lifted } of paths) {
+  for (const { node, length, kind, lifted, timing } of paths) {
+    if (timing) {
+      // Written at the pen's own pace, as recorded by the handwriting model.
+      tl.to(node, { strokeDashoffset: 0, duration: timing.duration / speed, ease: timing.ease }, timing.at / speed)
+      continue
+    }
     if (kind === 't') {
       // Short pieces at crossings go down with whatever is being written there.
       tl.to(node, { strokeDashoffset: 0, duration: 0.08, ease: 'none' }, Math.max(0, t - 0.08))

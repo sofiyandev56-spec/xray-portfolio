@@ -26,7 +26,7 @@ export function initSplit({ reduced }) {
         gsap.set(el, { visibility: 'visible' })
         // Returning the tween lets SplitText carry its progress across a re-split.
         return gsap.from(self.lines, {
-          yPercent: 110,
+          yPercent: 130, // past the mask (~113% of a line) and the capitals' overshoot: fully hidden
           duration: 1,
           ease: 'house',
           stagger: 0.09,
