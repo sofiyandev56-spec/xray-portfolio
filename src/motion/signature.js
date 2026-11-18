@@ -4,19 +4,21 @@ import signatureStrokes from '../data/signature-strokes.json'
 import nameStrokes from '../data/name-strokes.json'
 
 /*
-  Handwriting, written stroke by stroke. Two inks, chosen with data-ink:
+  Handwriting, written stroke by stroke. Two kinds, chosen with data-ink:
 
-    data-ink="signature"  the real autograph: public/hero/signature.png with
-                          src/data/signature-strokes.json (the default)
-    data-ink="name"       the full name in a script face: public/hero/name.png
-                          with src/data/name-strokes.json
+    data-ink="signature"  the real autograph, revealed: public/hero/signature.png
+                          is the scanned ink, src/data/signature-strokes.json its
+                          traced pen strokes. Thick invisible strokes along those
+                          centre lines mask the ink in, so the scan keeps its own
+                          line quality. (The default.)
 
-  Each ink image is white on transparency; its JSON is the centre line of every
-  pen stroke, in writing order, traced by tools/signature/vectorize.py.
+    data-ink="name"       the full name as a marker autograph, drawn: the strokes
+                          in src/data/name-strokes.json are the visible line
+                          itself, one bold even width, growing along the path the
+                          way the Rive autograph on landonorris.com is drawn.
 
-  Each element gets an inline SVG: a rect in currentColor, masked by the ink, and
-  that masked by thick invisible strokes along the centre lines. Drawing those
-  strokes (stroke-dashoffset) reveals the real ink as if the pen were moving.
+  Both JSON files come from tools/signature/vectorize.py and list strokes in
+  writing order.
 
     data-signature="intro"   written by the intro sequence (src/motion/intro.js)
     data-signature="scroll"  written as the footer scrolls into view, and unwritten
@@ -29,7 +31,7 @@ import nameStrokes from '../data/name-strokes.json'
 const SVG = 'http://www.w3.org/2000/svg'
 const INKS = {
   signature: { src: '/hero/signature.png', data: signatureStrokes },
-  name: { src: '/hero/name.png', data: nameStrokes },
+  name: { data: nameStrokes }, // no image: drawn directly as strokes
 }
 const SPEED = 2300 // image pixels per second, for letters
 const FLOURISH_SPEED = 3800 // the closing swoops are quicker
@@ -43,7 +45,24 @@ function el(name, attrs = {}, parent) {
   return node
 }
 
-/** Build the SVG inside `host` once; returns its reveal paths in writing order. */
+/**
+ * Add one path per stroke to `parent`, hidden (fully dashed out), and note for
+ * each whether the pen lifted before it: a gap wider than `liftAt`.
+ */
+function track(strokes, parent, liftAt) {
+  let prev = null
+  return strokes.map(({ k, p }) => {
+    const node = el('path', { d: 'M' + p.map(([x, y]) => `${x} ${y}`).join('L') }, parent)
+    const length = node.getTotalLength() || 1
+    node.style.strokeDasharray = `${length} ${length + 1}`
+    node.style.strokeDashoffset = length
+    const lifted = !prev || Math.hypot(p[0][0] - prev[0], p[0][1] - prev[1]) > liftAt
+    if (k !== 't') prev = p[p.length - 1]
+    return { node, length, kind: k, lifted }
+  })
+}
+
+/** Build the SVG inside `host` once; returns its paths in writing order. */
 function mount(host) {
   if (host._signature) return host._signature
   const ink = INKS[host.dataset.ink] || INKS.signature
@@ -52,8 +71,24 @@ function mount(host) {
   host.style.aspectRatio = `${w} / ${h}`
 
   const svg = el('svg', { viewBox: `0 0 ${w} ${h}`, 'aria-hidden': 'true', focusable: 'false' })
-  const defs = el('defs', {}, svg)
 
+  // Drawn: the strokes are the visible line.
+  if (!ink.src) {
+    const line = ink.data.strokeWidth
+    const pen = el(
+      'g',
+      { fill: 'none', stroke: 'currentColor', 'stroke-width': line, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
+      svg,
+    )
+    const paths = track(ink.data.strokes, pen, line * 1.6)
+    host.appendChild(svg)
+    host.classList.add('is-drawn-by-js')
+    host._signature = paths
+    return paths
+  }
+
+  // Revealed: invisible strokes uncover the scanned ink.
+  const defs = el('defs', {}, svg)
   const inkMask = el('mask', { id: `${id}-ink`, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: w, height: h }, defs)
   el('image', { href: ink.src, x: 0, y: 0, width: w, height: h }, inkMask)
 
@@ -70,18 +105,7 @@ function mount(host) {
     reveal,
   )
 
-  // A gap wider than the pen means the pen left the paper before this stroke.
-  const liftAt = (penWidth || inkWidth * 2.6) * 1.2
-  let prev = null
-  const paths = ink.data.strokes.map(({ k, p }) => {
-    const node = el('path', { d: 'M' + p.map(([x, y]) => `${x} ${y}`).join('L') }, pen)
-    const length = node.getTotalLength() || 1
-    node.style.strokeDasharray = `${length} ${length + 1}`
-    node.style.strokeDashoffset = length
-    const lifted = !prev || Math.hypot(p[0][0] - prev[0], p[0][1] - prev[1]) > liftAt
-    if (k !== 't') prev = p[p.length - 1]
-    return { node, length, kind: k, lifted }
-  })
+  const paths = track(ink.data.strokes, pen, (penWidth || inkWidth * 2.6) * 1.2)
 
   const group = el('g', { mask: `url(#${id}-pen)` }, svg)
   el('rect', { width: w, height: h, fill: 'currentColor', mask: `url(#${id}-ink)` }, group)

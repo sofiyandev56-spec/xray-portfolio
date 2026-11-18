@@ -13,11 +13,12 @@ Run from the project root (needs Pillow and NumPy):
   python3 tools/signature/vectorize.py --preview
 
   # the name in the intro (rendered by tools/signature/render_name.py)
-  python3 tools/signature/vectorize.py --src public/hero/name.png \
+  python3 tools/signature/vectorize.py --src tools/signature/name-ink.png \
       --out src/data/name-strokes.json --mode name --scale 1 --preview
 
 --mode signature  letters left to right, then dots, then the long flourishes
---mode name       letters strictly left to right, then the i-dots
+--mode name       a pen tour through the letters, joined into continuous smoothed
+                  strokes, plus a closing underline; drawn as a visible marker line
 --scale           trace at this fraction of full size (1 keeps fine hairlines)
 --preview [path]  also write an image with the strokes numbered in order
 
@@ -305,6 +306,33 @@ def pen_tour(strokes, reach=20):
     return order
 
 
+def smooth(points, rounds=2):
+    """Chaikin corner cutting: rounds off the stair-steps of a traced line, keeping its ends."""
+    pts = [tuple(p) for p in points]
+    for _ in range(rounds):
+        if len(pts) < 3:
+            break
+        out = [pts[0]]
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            out += [(0.75 * x0 + 0.25 * x1, 0.75 * y0 + 0.25 * y1), (0.25 * x0 + 0.75 * x1, 0.25 * y0 + 0.75 * y1)]
+        out.append(pts[-1])
+        pts = out
+    return pts
+
+
+def swoosh(W, H, ink):
+    """The closing underline: a quick stroke under the name, dipping then lifting to the right."""
+    ys, xs = np.nonzero(ink)
+    left, right, base = xs.min(), xs.max(), np.percentile(ys, 92)
+    p0 = np.array([left + (right - left) * 0.06, base + (H - base) * 0.45])
+    p1 = np.array([left + (right - left) * 0.36, H - (H - base) * 0.12])
+    p2 = np.array([left + (right - left) * 0.78, base + (H - base) * 0.30])
+    p3 = np.array([right + (W - right) * 0.6, base - (H - base) * 0.35])
+    t = np.linspace(0, 1, 64)[:, None]
+    pts = (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3
+    return [tuple(map(float, p)) for p in pts]
+
+
 def long_axis(pts, ratio=2.2, minimum=20):
     """The end points of a blob's long axis, or None when the blob is roughly round."""
     centre = pts.mean(0)
@@ -426,12 +454,42 @@ def main():
         strokes += patches
         print(f'patched {len(patches)} gaps')
     ordered = classify(strokes, width, args.mode)
+    stroke_width = None
+    if args.mode == 'name':
+        # Drawn as visible marker lines, like a real pen: join the tour's pieces
+        # into long continuous strokes wherever the pen didn't lift, drop the
+        # slivers left at crossings (the bold line covers those), smooth away the
+        # tracing's pixel noise, and finish with an underline.
+        stroke_width = round(W * 0.013, 1)
+        chains = []
+        for st in ordered:
+            pts = [tuple(p) for p in st['points']]
+            last = chains[-1] if chains else None
+            if (
+                last and st['kind'] != 'd' and last['kind'] != 'd'
+                and np.hypot(pts[0][0] - last['points'][-1][0], pts[0][1] - last['points'][-1][1]) < stroke_width * 1.6
+            ):
+                last['points'] += pts[1:]
+            else:
+                chains.append({'points': pts, 'kind': 'd' if st['kind'] == 'd' else 'l'})
+
+        def span(pts):
+            return sum(np.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:]))
+
+        # Isolated specks shorter than the pen is wide are tracing noise.
+        chains = [ch for ch in chains if ch['kind'] == 'd' or span(ch['points']) >= stroke_width]
+        for ch in chains:
+            if len(ch['points']) > 2:
+                ch['points'] = smooth(simplify(ch['points'], 1.8), rounds=3)
+        ordered = chains + [{'points': swoosh(W, H, ink), 'kind': 'f'}]
     out = {
         'width': W,
         'height': H,
         'inkWidth': round(width, 1),
         # how wide the invisible reveal pen should be to cover every stroke
         'penWidth': round(pen, 1),
+        # name mode: the strokes are drawn visibly, as an even line this wide
+        **({'strokeWidth': stroke_width} if stroke_width else {}),
         # k: l = letter, t = tiny piece at a crossing, d = dot, f = flourish
         'strokes': [{'k': st['kind'], 'p': [[round(x, 1), round(y, 1)] for x, y in st['points']]} for st in ordered],
     }
@@ -440,7 +498,7 @@ def main():
     kinds = {k: sum(1 for st in ordered if st['kind'] == k) for k in 'ltdf'}
     print(
         f'{len(ordered)} strokes {kinds}, ink ~{width:.1f}px, thickest ~{thickest}px, '
-        f'pen {out["penWidth"]}px, wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} kB)'
+        f'pen {out["penWidth"]}px, wrote {OUT.relative_to(ROOT) if OUT.is_relative_to(ROOT) else OUT} ({OUT.stat().st_size // 1024} kB)'
     )
 
     if args.preview:
