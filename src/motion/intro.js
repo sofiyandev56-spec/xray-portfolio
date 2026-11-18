@@ -1,21 +1,23 @@
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
-import { signatureTimeline, showSignature } from './signature.js'
+import { signatureTimeline } from './signature.js'
+
+const HOLD = 1 // seconds the finished autograph stays whole, long enough to be read at a glance
 
 /*
   The one orchestrated moment on the page.
 
     0.0s   the page is a blueprint: the x-ray of the portrait on a grid
-    0.2s   the signature is written across it, stroke by stroke
-    ~55%   while the pen is still moving, the photo develops up behind it
-    end    the signature fades; the name's lines rise
-    +0.9s  the quieter pieces (navigation, role, hint) fade in
-
-  Timings follow the signature's length, so a new signature keeps the rhythm.
+    0.2s   the autograph is signed across it, stroke by stroke, at the pace of
+           a real hand (3.6s, set in tools/signature/pen_path.py)
+    +HOLD  the finished autograph stays a moment, still on the blueprint where
+           it reads best, while the photo starts to develop up from below
+    then   it fades as the photo reaches it and the typeset name's lines rise
+    +0.6s  the quieter pieces (navigation, role, hint) fade in
 
     data-intro="lines"       split into lines and raised
     data-intro="fade"        faded in
-    data-signature="intro"   the autograph
+    data-signature="intro"   the autograph (data-ink="autograph")
 */
 export function playIntro({ stage, reduced }) {
   const root = document.documentElement
@@ -31,20 +33,23 @@ export function playIntro({ stage, reduced }) {
   }
 
   // Everything after the signature is offset from it, so removing it tightens the intro.
-  let start = 0
+  let develop = 0 // when the photo starts to develop
+  let text = 0.9 // when the typeset name rises
   if (signature) {
-    const write = signatureTimeline(signature, { speed: 1.5 })
+    const write = signatureTimeline(signature)
     const length = write.duration()
     write.delay(0.2).play()
-    gsap.to(signature, { autoAlpha: 0, duration: 0.7, ease: 'power2.out', delay: 0.2 + length + 0.35 })
-    start = 0.2 + length * 0.5
+    const leave = 0.2 + length + HOLD
+    gsap.to(signature, { autoAlpha: 0, duration: 0.7, ease: 'power2.out', delay: leave })
+    develop = 0.2 + length
+    text = leave + 0.1
   }
 
   if (hero) {
     gsap.fromTo(
       hero.uniforms.uReveal,
       { value: 0 },
-      { value: 1, duration: 2.2, ease: 'power2.inOut', delay: start },
+      { value: 1, duration: 2.2, ease: 'power2.inOut', delay: develop },
     )
   }
 
@@ -56,11 +61,14 @@ export function playIntro({ stage, reduced }) {
       autoSplit: true,
       onSplit(self) {
         return gsap.from(self.lines, {
-          yPercent: 110,
+          // Each mask is about 113% of its line's height and the capitals stand
+          // a little above the line at this tight leading: start far enough
+          // down that no sliver of them peeks out while waiting.
+          yPercent: 130,
           duration: 1.1,
           ease: 'house',
           stagger: 0.1,
-          delay: start + 0.9,
+          delay: text,
         })
       },
     })
@@ -70,7 +78,7 @@ export function playIntro({ stage, reduced }) {
     autoAlpha: 0,
     duration: 0.9,
     ease: 'power2.out',
-    delay: start + 1.8,
+    delay: text + 0.6,
     stagger: 0.1,
   })
 }

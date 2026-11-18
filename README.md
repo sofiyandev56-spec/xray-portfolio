@@ -1,7 +1,7 @@
 # Sofiyan Shaikh — portfolio
 
-A one-page portfolio. It opens as a blueprint while the signature is written
-across it stroke by stroke, then develops into a photo. Moving the cursor over the
+A one-page portfolio. It opens as a blueprint while the autograph is signed across
+it, stroke by stroke at the pace of a real hand, then develops into a photo. Moving the cursor over the
 photo stirs a small fluid simulation that wipes it back to an x-ray: the skull and
 skeleton under the face, the inside of the MacBook and its M4 chip under the lid.
 Leave the cursor alone and a virtual one sweeps the photo for you.
@@ -34,7 +34,8 @@ Netlify, GitHub Pages) can serve.
 index.html                     all words, links and projects
 public/hero/portrait.webp      the cut-out photo (843 x 818)
 public/hero/xray.webp          what the cursor reveals; built by tools/xray/build.py
-public/hero/signature.png      the signature's ink as transparency
+public/hero/autograph.png      the brush-pen autograph's ink as transparency (intro)
+public/hero/signature.png      the signature's ink as transparency (footer)
 public/certificates/           certificate scans shown in the Work gallery
 public/files/                  résumé and CV PDFs
 public/og-image.jpg            the link preview; built by tools/social/build.py
@@ -46,12 +47,12 @@ src/gl/scenes/HeroScene.js     photo, x-ray, and the mask between them
 src/gl/Fluid.js                the stable-fluids simulation the cursor stirs
 src/gl/IdleCursor.js           the sweep that runs when nobody moves the pointer
 src/gl/scenes/ContoursScene.js the contour lines behind the contact section
-src/motion/intro.js            the load sequence, timed to the signature
-src/motion/signature.js        the signature, written stroke by stroke
+src/motion/intro.js            the load sequence around the autograph
+src/motion/signature.js        handwriting stroke by stroke: the autograph (intro), the signature (footer)
 src/motion/roll.js             the letter-roll hover on links
 src/motion/ticker.js           the tools band that answers the scroll
 src/motion/horizontal.js       the sideways Work gallery and its depth
-src/data/signature-strokes.json  the pen strokes; built by tools/signature/vectorize.py
+src/data/*-strokes.json        the pen strokes: autograph from tools/signature/pen_path.py, signature from vectorize.py
 tools/                         the scripts that build the generated assets
 ```
 
@@ -65,7 +66,7 @@ scratch for this design.
 | Smooth scroll | Lenis at lerp 0.1, touch smoothed too (`syncTouch`), on GSAP's ticker with ScrollTrigger and WebGL |
 | Cursor | A stable-fluids simulation (vorticity, pressure solve, advection) at a fixed 60 steps a second; the cursor pushes the flow and drops "dye", and the dye is the reveal mask |
 | Idle | After two quiet seconds a virtual cursor zig-zags down the photo in 2.5 s, pauses, sweeps back, rests 3 s, repeats |
-| Signature | Centre lines traced from the real ink and ordered like handwriting (letters, dots, then the flourishes); invisible strokes along them reveal the ink. The intro writes it on a timer; the footer writes it with the scroll and rewinds it on the way back |
+| Handwriting | The intro signs the brush-pen autograph the way a hand does. Each stroke starts and ends where the pen did and goes in the order it went, read off the ink: brush pens leave thick downstrokes and thin upstrokes, and tapers where the pen lands or lifts in motion; the i-dots, underline, dots and crown come last, as people add them. Speed follows the two-thirds power law of handwriting (fast sweeps, slow turns, a stop where the pen reverses), 3.6 s in all, and the finished autograph holds for a second before the photo develops and the name rises. The footer reveals the scanned signature along its traced strokes, with the scroll, and rewinds it on the way back |
 | Links | Letters roll up one after another on hover and keyboard focus |
 | Tools band | Drifts sideways, speeds up and leans with scroll speed, reverses on scroll up |
 | Gallery | Sideways on desktop via CSS sticky; each drawing drifts against the travel for depth |
@@ -84,6 +85,10 @@ no idle sweep, no roll, and the gallery stacks.
   `cv/dist/Sofiyan_Shaikh_CV.pdf` and `cv/dist/Sofiyan_Shaikh_Resume_Public.pdf`
   (the copy without a phone number) into `public/files/`, keeping these names.
 - **Tools band:** edit the list in the `ticker` section of `index.html`.
+- **Autograph:** how long it takes is `DURATION` in `tools/signature/pen_path.py`;
+  the route (where each stroke starts, ends and goes, in order) is
+  `tools/signature/autograph-plan.json`. Rebuild with the commands below, and watch
+  it with `npm run dev` at `/tools/signature/preview.html` (`?speed=0.75` slows it).
 
 ## Generated assets
 
@@ -93,6 +98,14 @@ python3 tools/xray/build.py --preview
 
 ```bash
 python3 tools/signature/vectorize.py --preview
+```
+
+```bash
+python3 tools/signature/extract_ink.py tools/signature/sources/autograph.png public/hero/autograph.png
+```
+
+```bash
+python3 tools/signature/pen_path.py --preview
 ```
 
 ```bash
