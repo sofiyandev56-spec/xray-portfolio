@@ -1,6 +1,7 @@
 """
-Traces the centre lines of the pen strokes in public/hero/signature.png and writes
-them to src/data/signature-strokes.json, in writing order.
+Traces the centre lines of the pen strokes in an ink image (white on
+transparency) and writes them, in writing order, to a JSON file. Used for the
+footer signature and for the name the intro writes.
 
 The site never draws these lines itself. They are the path a thick, invisible
 "pen" follows to reveal the real ink, so the signature appears stroke by stroke
@@ -8,23 +9,32 @@ The site never draws these lines itself. They are the path a thick, invisible
 
 Run from the project root (needs Pillow and NumPy):
 
-  python3 tools/signature/vectorize.py            # write the JSON
-  python3 tools/signature/vectorize.py --preview  # also write a numbered preview
+  # the signature (the defaults)
+  python3 tools/signature/vectorize.py --preview
 
-The writing order is worked out by classify() below; --preview numbers the
-strokes in that order so you can check it.
+  # the name in the intro (rendered by tools/signature/render_name.py)
+  python3 tools/signature/vectorize.py --src public/hero/name.png \
+      --out src/data/name-strokes.json --mode name --scale 1 --preview
+
+--mode signature  letters left to right, then dots, then the long flourishes
+--mode name       letters strictly left to right, then the i-dots
+--scale           trace at this fraction of full size (1 keeps fine hairlines)
+--preview [path]  also write an image with the strokes numbered in order
+
+The writing order is worked out by classify() below.
 """
+import argparse
 import json
 import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / 'public' / 'hero' / 'signature.png'
 OUT = ROOT / 'src' / 'data' / 'signature-strokes.json'
-SCALE = 0.5  # trace at half size; coordinates are scaled back up
+SCALE = 0.5  # trace at half size; coordinates are scaled back up (see --scale)
 MIN_LENGTH = 6  # traced pixels; shorter fragments are noise from thinning
 
 
@@ -186,7 +196,7 @@ def join(fragments, radius=7):
     return strokes
 
 
-def build():
+def build(mode='signature'):
     im = Image.open(SRC).convert('RGBA')
     W, H = im.size
     alpha = im.getchannel('A').resize((round(W * SCALE), round(H * SCALE)), Image.LANCZOS)
@@ -206,6 +216,14 @@ def build():
 
     total = sum(s['length'] for s in strokes) or 1
     width = float(full_ink.sum()) / total
+
+    # The thickest stroke: erode the ink one pixel at a time until (almost) none
+    # is left. The reveal pen must be at least this wide to uncover heavy shades.
+    m, start, rounds = Image.fromarray((full_ink * 255).astype('uint8')), full_ink.sum(), 0
+    while rounds < 60 and np.asarray(m).astype(bool).sum() > start * 0.004:
+        m = m.filter(ImageFilter.MinFilter(3))
+        rounds += 1
+    thickest = rounds * 2
 
     # Dots and other marks too small to thin: any ink blob no stroke passes near.
     covered = Image.new('L', (W, H), 0)
@@ -230,11 +248,122 @@ def build():
         if len(blob) > 60:
             ys, xs = zip(*blob)
             cx, cy = float(np.mean(xs)), float(np.mean(ys))
-            strokes.append({'points': [(cx - 2, cy), (cx + 2, cy)], 'length': 4, 'dot': True})
-    return W, H, strokes, width
+            seg = long_axis(np.column_stack([xs, ys]).astype(float))
+            if mode == 'name' and seg is not None:
+                # A sliver of a thick stroke, not a dot: write it as a short stroke.
+                strokes.append({'points': seg, 'length': float(np.hypot(*np.subtract(seg[1], seg[0])))})
+            else:
+                strokes.append({'points': [(cx - 2, cy), (cx + 2, cy)], 'length': 4, 'dot': True})
+    return W, H, strokes, width, thickest
 
 
-def classify(strokes, ink_width):
+def pen_tour(strokes, reach=20):
+    """
+    Order strokes the way a pen would travel: from the end of each stroke, carry
+    on into whichever stroke starts (or ends) right there, preferring the one that
+    continues straightest. When nothing connects, lift the pen and move to the
+    next stroke in reading order. Strokes are flipped as needed so each one is
+    drawn from the end the pen arrives at.
+    """
+    def direction(pts, at_end):
+        a, b = (pts[-2], pts[-1]) if at_end else (pts[1], pts[0])
+        v = np.array(b, float) - np.array(a, float)
+        n = np.hypot(*v)
+        return v / n if n else v
+
+    remaining = list(strokes)
+    order = []
+
+    def take(st, reverse):
+        remaining.remove(st)
+        if reverse:
+            st['points'] = st['points'][::-1]
+        order.append(st)
+
+    while remaining:
+        if order:
+            last = order[-1]['points']
+            pen, heading = np.array(last[-1], float), direction(last, True)
+            best, best_cost = None, None
+            for st in remaining:
+                for reverse in (False, True):
+                    pts = st['points'][::-1] if reverse else st['points']
+                    gap = np.hypot(*(np.array(pts[0], float) - pen))
+                    if gap > reach:
+                        continue
+                    onward = -direction(pts, False)  # direction of travel leaving the start
+                    cost = gap + 18 * (1 - float(np.dot(heading, onward))) / 2
+                    if best_cost is None or cost < best_cost:
+                        best, best_cost = (st, reverse), cost
+            if best:
+                take(*best)
+                continue
+        # Pen lift: the next unwritten stroke in reading order (by its centre, so
+        # a long descender reaching left doesn't jump the queue), from its left end.
+        st = min(remaining, key=lambda st: sum(p[0] for p in st['points']) / len(st['points']))
+        take(st, st['points'][0][0] > st['points'][-1][0])
+    return order
+
+
+def long_axis(pts, ratio=2.2, minimum=20):
+    """The end points of a blob's long axis, or None when the blob is roughly round."""
+    centre = pts.mean(0)
+    _, sv, vt = np.linalg.svd(pts - centre, full_matrices=False)
+    proj = (pts - centre) @ vt[0]
+    across = (pts - centre) @ vt[1]
+    major, minor = proj.max() - proj.min(), (across.max() - across.min()) or 1
+    if major < minimum or major / minor < ratio:
+        return None
+    a, b = centre + vt[0] * proj.min(), centre + vt[0] * proj.max()
+    return [tuple(a), tuple(b)]
+
+
+def patch_gaps(ordered, ink, pen):
+    """
+    Thick strokes that cross others can lose bits of centre line, leaving ink the
+    pen never passes over. Return a short stroke along each such gap's long axis;
+    added before the pen tour, they bridge the breaks so the pen runs straight on.
+    """
+    H, W = ink.shape
+    cover = Image.new('L', (W, H), 0)
+    d = ImageDraw.Draw(cover)
+    for st in ordered:
+        pts = st['points']
+        d.line(pts, fill=255, width=int(pen), joint='curve')
+        for x, y in (pts[0], pts[-1]):
+            d.ellipse([x - pen / 2, y - pen / 2, x + pen / 2, y + pen / 2], fill=255)
+    miss = ink & (np.asarray(cover) == 0)
+    seen = np.zeros_like(miss)
+    patches = []
+    for y, x in zip(*np.nonzero(miss)):
+        if seen[y, x]:
+            continue
+        stack, blob = [(y, x)], []
+        seen[y, x] = True
+        while stack:
+            cy, cx = stack.pop()
+            blob.append((cx, cy))
+            for dy, dx in OFFSETS:
+                ny, nx = cy + dy, cx + dx
+                if 0 <= ny < H and 0 <= nx < W and miss[ny, nx] and not seen[ny, nx]:
+                    seen[ny, nx] = True
+                    stack.append((ny, nx))
+        if len(blob) < 12:
+            continue
+        pts = np.array(blob, float)
+        centre = pts.mean(0)
+        axis = np.linalg.svd(pts - centre, full_matrices=False)[2][0]
+        proj = (pts - centre) @ axis
+        a, b = centre + axis * proj.min(), centre + axis * proj.max()
+        patches.append((centre, [tuple(a), tuple(b)]))
+
+    return [
+        {'points': seg, 'length': float(np.hypot(seg[1][0] - seg[0][0], seg[1][1] - seg[0][1]))}
+        for _, seg in patches
+    ]
+
+
+def classify(strokes, ink_width, mode='signature'):
     """
     Writing order, the way a signature is usually made:
       letters  left to right, each drawn left-to-right or top-to-bottom
@@ -258,7 +387,7 @@ def classify(strokes, ink_width):
                 default=1e9,
             )
             st['kind'] = 'd' if near > ink_width * 2.5 else 't'
-        elif dx > 450:
+        elif mode == 'signature' and dx > 450:
             st['kind'] = 'f'
         elif st['length'] < 24:
             st['kind'] = 't'
@@ -269,28 +398,52 @@ def classify(strokes, ink_width):
         if (dx >= dy and x0 > x1) or (dx < dy and y0 > y1):
             st['points'] = st['points'][::-1]
 
-    letters = sorted((st for st in strokes if st['kind'] in 'lt'), key=lambda st: st['minx'])
+    if mode == 'name':
+        letters = pen_tour([st for st in strokes if st['kind'] in 'lt'])
+    else:
+        letters = sorted((st for st in strokes if st['kind'] in 'lt'), key=lambda st: st['minx'])
     dots = sorted((st for st in strokes if st['kind'] == 'd'), key=lambda st: st['minx'])
     flourishes = sorted((st for st in strokes if st['kind'] == 'f'), key=lambda st: st['meany'])
     return letters + dots + flourishes
 
 
 def main():
-    W, H, strokes, width = build()
-    ordered = classify(strokes, width)
+    global SRC, OUT, SCALE
+    ap = argparse.ArgumentParser(description='Trace pen strokes from an ink image.')
+    ap.add_argument('--src', type=Path, default=SRC)
+    ap.add_argument('--out', type=Path, default=OUT)
+    ap.add_argument('--mode', choices=['signature', 'name'], default='signature')
+    ap.add_argument('--scale', type=float, default=SCALE)
+    ap.add_argument('--preview', nargs='?', type=Path, const=ROOT / 'tools' / 'signature' / 'preview.png')
+    args = ap.parse_args()
+    SRC, OUT, SCALE = args.src.resolve(), args.out.resolve(), args.scale
+
+    W, H, strokes, width, thickest = build(args.mode)
+    pen = max(width * 2.6, thickest * 1.25 + 4)
+    if args.mode == 'name':
+        ink = np.asarray(Image.open(SRC).convert('RGBA').getchannel('A')) > 110
+        patches = patch_gaps(strokes, ink, pen)
+        strokes += patches
+        print(f'patched {len(patches)} gaps')
+    ordered = classify(strokes, width, args.mode)
     out = {
         'width': W,
         'height': H,
         'inkWidth': round(width, 1),
+        # how wide the invisible reveal pen should be to cover every stroke
+        'penWidth': round(pen, 1),
         # k: l = letter, t = tiny piece at a crossing, d = dot, f = flourish
         'strokes': [{'k': st['kind'], 'p': [[round(x, 1), round(y, 1)] for x, y in st['points']]} for st in ordered],
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(out, separators=(',', ':')))
     kinds = {k: sum(1 for st in ordered if st['kind'] == k) for k in 'ltdf'}
-    print(f'{len(ordered)} strokes {kinds}, ink width ~{width:.1f}px, wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} kB)')
+    print(
+        f'{len(ordered)} strokes {kinds}, ink ~{width:.1f}px, thickest ~{thickest}px, '
+        f'pen {out["penWidth"]}px, wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} kB)'
+    )
 
-    if '--preview' in sys.argv:
+    if args.preview:
         im = Image.new('RGB', (W, H), (20, 51, 122))
         im.paste((90, 110, 160), (0, 0), Image.open(SRC).convert('RGBA'))
         d = ImageDraw.Draw(im)
@@ -302,10 +455,8 @@ def main():
             if st['kind'] != 't':
                 mx, my = pts[len(pts) // 2]
                 d.text((mx + 6, my - 14), str(i), fill=(255, 255, 255))
-        i = sys.argv.index('--preview')
-        path = Path(sys.argv[i + 1]) if len(sys.argv) > i + 1 else ROOT / 'tools' / 'signature' / 'preview.png'
-        im.save(path)
-        print('preview', path)
+        im.save(args.preview)
+        print('preview', args.preview)
 
 
 if __name__ == '__main__':

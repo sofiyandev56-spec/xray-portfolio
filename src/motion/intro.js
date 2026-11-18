@@ -1,21 +1,24 @@
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
-import { signatureTimeline, showSignature } from './signature.js'
+import { signatureTimeline } from './signature.js'
+
+const WRITE_SECONDS = 2.8
 
 /*
   The one orchestrated moment on the page.
 
     0.0s   the page is a blueprint: the x-ray of the portrait on a grid
-    0.2s   the signature is written across it, stroke by stroke
-    ~55%   while the pen is still moving, the photo develops up behind it
-    end    the signature fades; the name's lines rise
+    0.2s   the name is handwritten across it in script, stroke by stroke
+    ~50%   while the pen is still moving, the photo develops up behind it
+    3.0s   the handwriting fades; the typeset name's lines rise
     +0.9s  the quieter pieces (navigation, role, hint) fade in
 
-  Timings follow the signature's length, so a new signature keeps the rhythm.
+  The handwriting is fitted to WRITE_SECONDS however long its strokes are, so a
+  different name or ink keeps the same rhythm.
 
     data-intro="lines"       split into lines and raised
     data-intro="fade"        faded in
-    data-signature="intro"   the autograph
+    data-signature="intro"   the handwritten name (data-ink="name")
 */
 export function playIntro({ stage, reduced }) {
   const root = document.documentElement
@@ -33,8 +36,9 @@ export function playIntro({ stage, reduced }) {
   // Everything after the signature is offset from it, so removing it tightens the intro.
   let start = 0
   if (signature) {
-    const write = signatureTimeline(signature, { speed: 1.5 })
-    const length = write.duration()
+    const write = signatureTimeline(signature)
+    write.timeScale(write.duration() / WRITE_SECONDS)
+    const length = WRITE_SECONDS
     write.delay(0.2).play()
     gsap.to(signature, { autoAlpha: 0, duration: 0.7, ease: 'power2.out', delay: 0.2 + length + 0.35 })
     start = 0.2 + length * 0.5

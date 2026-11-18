@@ -1,7 +1,7 @@
 # Sofiyan Shaikh — portfolio
 
-A one-page portfolio. It opens as a blueprint while the signature is written
-across it stroke by stroke, then develops into a photo. Moving the cursor over the
+A one-page portfolio. It opens as a blueprint while the name is handwritten
+across it in script, stroke by stroke, then develops into a photo. Moving the cursor over the
 photo stirs a small fluid simulation that wipes it back to an x-ray: the skull and
 skeleton under the face, the inside of the MacBook and its M4 chip under the lid.
 Leave the cursor alone and a virtual one sweeps the photo for you.
@@ -34,7 +34,8 @@ Netlify, GitHub Pages) can serve.
 index.html                     all words, links and projects
 public/hero/portrait.webp      the cut-out photo (843 x 818)
 public/hero/xray.webp          what the cursor reveals; built by tools/xray/build.py
-public/hero/signature.png      the signature's ink as transparency
+public/hero/signature.png      the signature's ink as transparency (footer)
+public/hero/name.png           the name in script, as ink (intro); built by tools/signature/render_name.py
 public/certificates/           certificate scans shown in the Work gallery
 public/files/                  résumé and CV PDFs
 public/og-image.jpg            the link preview; built by tools/social/build.py
@@ -46,12 +47,12 @@ src/gl/scenes/HeroScene.js     photo, x-ray, and the mask between them
 src/gl/Fluid.js                the stable-fluids simulation the cursor stirs
 src/gl/IdleCursor.js           the sweep that runs when nobody moves the pointer
 src/gl/scenes/ContoursScene.js the contour lines behind the contact section
-src/motion/intro.js            the load sequence, timed to the signature
-src/motion/signature.js        the signature, written stroke by stroke
+src/motion/intro.js            the load sequence around the handwritten name
+src/motion/signature.js        handwriting stroke by stroke (data-ink="name" or "signature")
 src/motion/roll.js             the letter-roll hover on links
 src/motion/ticker.js           the tools band that answers the scroll
 src/motion/horizontal.js       the sideways Work gallery and its depth
-src/data/signature-strokes.json  the pen strokes; built by tools/signature/vectorize.py
+src/data/*-strokes.json        the pen strokes; built by tools/signature/vectorize.py
 tools/                         the scripts that build the generated assets
 ```
 
@@ -65,7 +66,7 @@ scratch for this design.
 | Smooth scroll | Lenis at lerp 0.1, touch smoothed too (`syncTouch`), on GSAP's ticker with ScrollTrigger and WebGL |
 | Cursor | A stable-fluids simulation (vorticity, pressure solve, advection) at a fixed 60 steps a second; the cursor pushes the flow and drops "dye", and the dye is the reveal mask |
 | Idle | After two quiet seconds a virtual cursor zig-zags down the photo in 2.5 s, pauses, sweeps back, rests 3 s, repeats |
-| Signature | Centre lines traced from the real ink and ordered like handwriting (letters, dots, then the flourishes); invisible strokes along them reveal the ink. The intro writes it on a timer; the footer writes it with the scroll and rewinds it on the way back |
+| Handwriting | Centre lines traced from ink images; invisible strokes along them reveal the ink. The intro writes the full name in Monsieur La Doulaise script, ordered by a pen tour (each stroke continues into the one that carries on straightest), fitted to 2.8 s. The footer writes the real autograph with the scroll and rewinds it on the way back |
 | Links | Letters roll up one after another on hover and keyboard focus |
 | Tools band | Drifts sideways, speeds up and leans with scroll speed, reverses on scroll up |
 | Gallery | Sideways on desktop via CSS sticky; each drawing drifts against the travel for depth |
@@ -96,10 +97,20 @@ python3 tools/signature/vectorize.py --preview
 ```
 
 ```bash
+python3 tools/signature/render_name.py
+```
+
+```bash
+python3 tools/signature/vectorize.py --src public/hero/name.png --out src/data/name-strokes.json --mode name --scale 1 --preview
+```
+
+```bash
 python3 tools/social/build.py
 ```
 
-They need Pillow and NumPy. The x-ray needs the source images described in
+They need Pillow and NumPy; `render_name.py` also needs `npm install` (the font
+comes from the `@fontsource/monsieur-la-doulaise` dev dependency, SIL Open Font
+License). The x-ray needs the source images described in
 `tools/xray/sources/README.md`, which are not in the repo. If you change the
 photo, re-measure the positions at the top of `tools/xray/build.py`, and keep
 `portrait.webp` and `xray.webp` the same aspect ratio.
